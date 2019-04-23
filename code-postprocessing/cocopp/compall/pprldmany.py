@@ -420,7 +420,15 @@ def plot(dsList, targets=None, craftingeffort=0., **kwargs):
             evals = entry.detEvals([t])[0]
             runlengthsucc = evals[np.isnan(evals) == False] / divisor
             runlengthunsucc = entry.maxevals[np.isnan(evals)] / divisor
-            if len(runlengthsucc) > 0:
+            if testbedsettings.current_testbed.no_simulated_restarts:
+                nruns = len(runlengthsucc) + len(runlengthunsucc)
+                if perfprofsamplesize % nruns:
+                    warnings.warn("without simulated restarts nbsamples=%d"
+                                  " should be a multiple of nbruns=%d"
+                                    % (perfprofsamplesize, nruns))
+                idx = toolsstats.randint_derandomized(nruns, size=perfprofsamplesize)
+                x = np.hstack((runlengthsucc, len(runlengthunsucc) * [np.inf]))[idx]
+            elif len(runlengthsucc) > 0:
                 x = toolsstats.drawSP(runlengthsucc, runlengthunsucc,
                                       percentiles=[50],
                                       samplesize=perfprofsamplesize)[1]
@@ -636,7 +644,15 @@ def main(dictAlg, order=None, outputdir='.', info='default',
                         assert entry.dim == dim
                         runlengthsucc = evals[np.isnan(evals) == False] / divisor
                         runlengthunsucc = entry.maxevals[np.isnan(evals)] / divisor
-                        if len(runlengthsucc) > 0:
+                        if testbedsettings.current_testbed.no_simulated_restarts:
+                            nruns = len(runlengthsucc) + len(runlengthunsucc)
+                            if perfprofsamplesize % nruns:
+                                warnings.warn("without simulated restarts nbsamples=%d"
+                                              " should be a multiple of nbruns=%d"
+                                                % (perfprofsamplesize, nruns))
+                            idx = toolsstats.randint_derandomized(nruns, size=perfprofsamplesize)
+                            x = np.hstack((runlengthsucc, len(runlengthunsucc) * [np.inf]))[idx]
+                        elif len(runlengthsucc) > 0:
                             x = toolsstats.drawSP(runlengthsucc, runlengthunsucc,
                                                   percentiles=[50],
                                                   samplesize=perfprofsamplesize)[1]
